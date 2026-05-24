@@ -1,1 +1,1 @@
-# COP4331 Project 1
+# COP4331 Contact Manager
