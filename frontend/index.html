@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager - Authentication</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-950 text-white flex items-center justify-center h-screen transition-all">
+
+    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md mx-4">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight text-sky-400">COP4331 Contact Manager</h1>
+            <p id="auth-subtitle" class="text-slate-400 mt-2 text-sm">Welcome back.</p>
+        </div>
+
+        <form id="login-form" class="space-y-5" onsubmit="event.preventDefault();">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
+                <input type="text" id="login-username" placeholder="Enter your username" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+            </div>
+            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 font-semibold py-2.5 rounded-lg transition-all shadow-lg hover:shadow-sky-500/20 active:scale-[0.99] text-sm">
+                Sign In
+            </button>
+            <p class="text-center text-xs text-slate-400 mt-4">
+                Don't have an account? <a href="#" onclick="toggleAuth(true)" class="text-sky-400 hover:underline font-medium">Create one</a>
+            </p>
+        </form>
+
+        <form id="register-form" class="space-y-5 hidden" onsubmit="event.preventDefault();">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">First Name</label>
+                    <input type="text" id="reg-firstname" placeholder="John" required
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Last Name</label>
+                    <input type="text" id="reg-lastname" placeholder="Doe" required
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
+                <input type="text" id="reg-username" placeholder="Choose a username" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+                <input type="password" id="reg-password" placeholder="••••••••" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+            </div>
+            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 font-semibold py-2.5 rounded-lg transition-all shadow-lg hover:shadow-sky-500/20 active:scale-[0.99] text-sm">
+                Register Account
+            </button>
+            <p class="text-center text-xs text-slate-400 mt-4">
+                Already have an account? <a href="#" onclick="toggleAuth(false)" class="text-sky-400 hover:underline font-medium">Sign in</a>
+            </p>
+        </form>
+
+    </div>
+
+    <script>
+        function toggleAuth(showRegister) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const subtitle = document.getElementById('auth-subtitle');
+
+            if (showRegister) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                subtitle.innerText = 'Create an account to get started.';
+            } else {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                subtitle.innerText = 'Welcome back.';
+            }
+        }
+    </script>
+</body>
+</html>
