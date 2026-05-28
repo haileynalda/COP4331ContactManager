@@ -4,64 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Manager - Authentication</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-<body class="bg-slate-950 text-white flex items-center justify-center h-screen transition-all">
+    
+    <style type="text/tailwindcss">
+        @theme {
+            --color-brand-beige: #E8D6C3;
+            --color-brand-brown: #6B4F3A;
+            --color-brand-gold: #C9A15B;
+            --color-brand-gold-dark: #916823;
+            --color-brand-link-blue: #1A56DB;
+            --color-brand-link-blue-hover: #11459E;
+        }
 
-    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md mx-4">
+        @utility auth-card {
+            @apply bg-white p-10 rounded-2xl shadow-2xl border border-brand-beige/50 w-full max-w-lg mx-4;
+        }
+
+        @utility input-label {
+            @apply block text-sm font-bold uppercase tracking-wider text-brand-brown/90 mb-1.5;
+        }
+
+        @utility input-field {
+            @apply w-full bg-white border border-brand-beige rounded-xl px-4 py-3 text-brand-brown placeholder-brand-brown/60 transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
+        }
+
+        @utility btn-primary {
+            @apply w-full bg-brand-brown text-brand-beige hover:bg-brand-brown/90 font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-brand-brown/20 active:scale-[0.99] text-base cursor-pointer focus:outline-2 focus:outline-offset-2 focus:outline-brand-brown;
+        }
+
+        @utility auth-link {
+            @apply text-brand-link-blue underline font-bold transition-all hover:text-brand-link-blue-hover hover:bg-blue-50 focus:bg-blue-100 focus:outline-none rounded px-1.5 py-0.5;
+        }
+    </style>
+</head>
+<body class="bg-brand-beige text-brand-brown flex items-center justify-center h-screen transition-all">
+
+    <div class="auth-card">
         
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold tracking-tight text-sky-400">COP4331 Contact Manager</h1>
-            <p id="auth-subtitle" class="text-slate-400 mt-2 text-sm">Welcome back.</p>
+            <h1 class="text-4xl font-extrabold tracking-tight text-brand-brown">COP4331 Contact Manager</h1>
+            <p id="auth-subtitle" class="text-brand-brown/70 mt-2.5 text-base">Welcome back.</p>
         </div>
 
         <form id="login-form" class="space-y-5" onsubmit="event.preventDefault();">
+            <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
+            
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
-                <input type="text" id="login-username" placeholder="Enter your username" required
-                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                <label class="input-label">Username <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="text" id="login-username" placeholder="Enter your username" required class="input-field">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
-                <input type="password" id="login-password" placeholder="••••••••" required
-                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="password" id="login-password" placeholder="••••••••" required class="input-field">
             </div>
-            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 font-semibold py-2.5 rounded-lg transition-all shadow-lg hover:shadow-sky-500/20 active:scale-[0.99] text-sm">
-                Sign In
-            </button>
-            <p class="text-center text-xs text-slate-400 mt-4">
-                Don't have an account? <a href="#" onclick="toggleAuth(true)" class="text-sky-400 hover:underline font-medium">Create one</a>
+            <div class="pt-2">
+                <button type="submit" class="btn-primary">
+                    Sign In
+                </button>
+            </div>
+            <p class="text-center text-sm text-brand-brown/80 mt-5">
+                Don't have an account? <a href="#" onclick="toggleAuth(true)" class="auth-link">Create one</a>
             </p>
         </form>
 
         <form id="register-form" class="space-y-5 hidden" onsubmit="event.preventDefault();">
+            <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">First Name</label>
-                    <input type="text" id="reg-firstname" placeholder="John" required
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                    <label class="input-label">First Name <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <input type="text" id="reg-firstname" placeholder="John" required class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Last Name</label>
-                    <input type="text" id="reg-lastname" placeholder="Doe" required
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                    <label class="input-label">Last Name <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <input type="text" id="reg-lastname" placeholder="Doe" required class="input-field">
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
-                <input type="text" id="reg-username" placeholder="Choose a username" required
-                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                <label class="input-label">Username <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="text" id="reg-username" placeholder="Choose a username" required class="input-field">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
-                <input type="password" id="reg-password" placeholder="••••••••" required
-                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all text-sm">
+                <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="password" id="reg-password" placeholder="••••••••" required class="input-field">
             </div>
-            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 font-semibold py-2.5 rounded-lg transition-all shadow-lg hover:shadow-sky-500/20 active:scale-[0.99] text-sm">
-                Register Account
-            </button>
-            <p class="text-center text-xs text-slate-400 mt-4">
-                Already have an account? <a href="#" onclick="toggleAuth(false)" class="text-sky-400 hover:underline font-medium">Sign in</a>
+            <div class="pt-2">
+                <button type="submit" class="btn-primary">
+                    Register Account
+                </button>
+            </div>
+            <p class="text-center text-sm text-brand-brown/80 mt-5">
+                Already have an account? <a href="#" onclick="toggleAuth(false)" class="auth-link">Sign in</a>
             </p>
         </form>
 
