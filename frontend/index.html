@@ -55,9 +55,9 @@
             <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
             
             <div>
-    <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
-    <input type="email" id="login-email" placeholder="name@example.com" required class="input-field">
-</div>
+                <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="email" id="login-email" placeholder="name@example.com" required class="input-field">
+            </div>
             
             <div>
                 <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
@@ -77,22 +77,11 @@
 
         <form id="register-form" class="space-y-5 hidden" onsubmit="event.preventDefault();">
             <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="input-label">First Name <span class="text-red-700" aria-hidden="true">*</span></label>
-                    <input type="text" id="reg-firstname" placeholder="John" required class="input-field">
-                </div>
-                <div>
-                    <label class="input-label">Last Name <span class="text-red-700" aria-hidden="true">*</span></label>
-                    <input type="text" id="reg-lastname" placeholder="Doe" required class="input-field">
-                </div>
-            </div>
             
             <div>
-    <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
-    <input type="email" id="reg-email" placeholder="name@example.com" required class="input-field">
-</div>
+                <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="email" id="reg-email" placeholder="name@example.com" required class="input-field">
+            </div>
             
             <div>
                 <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
@@ -122,11 +111,29 @@
     </div>
 
     <script>
-        function toggleAuth(showRegister) {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const subtitle = document.getElementById('auth-subtitle');
+         const BASE_API_URL = 'http://192.241.134.241/api/auth.php';
 
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const passwordInput = document.getElementById('reg-password');
+        const confirmInput = document.getElementById('reg-password-confirm');
+        const errorMsg = document.getElementById('password-error');
+
+        async function initSession() {
+            try {
+                // Request state details (exempt from token checks)
+                const response = await fetch(`${BASE_API_URL}?action=me`);
+                const data = await response.json();
+                
+            } catch (error) {
+                console.error("Initialization failure:", error);
+            }
+        }
+
+        function toggleAuth(showRegister) {
+            const subtitle = document.getElementById('auth-subtitle');
             if (showRegister) {
                 loginForm.classList.add('hidden');
                 registerForm.classList.remove('hidden');
@@ -138,16 +145,11 @@
             }
         }
 
-        const passwordInput = document.getElementById('reg-password');
-        const confirmInput = document.getElementById('reg-password-confirm');
-        const errorMsg = document.getElementById('password-error');
-
         function checkPasswords() {
             if (confirmInput.value === '') {
                 errorMsg.classList.add('hidden');
                 return;
             }
-
             if (passwordInput.value === confirmInput.value) {
                 errorMsg.classList.add('hidden');
             } else {
@@ -160,7 +162,6 @@
 
         function togglePasswordVisibility(inputId, buttonElement) {
             const input = document.getElementById(inputId);
-            
             if (input.type === 'password') {
                 input.type = 'text';
                 buttonElement.innerText = 'Hide';
@@ -169,6 +170,74 @@
                 buttonElement.innerText = 'Show';
             }
         }
+
+        // --- HANDLER: LOGIN ---
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const payload = {
+                email: loginEmailInput.value,
+                password: loginPasswordInput.value,
+            };
+
+            try {
+                const response = await fetch(`${BASE_API_URL}?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                } else if (data.email) {
+                    alert(`Welcome back, ${data.email}!`);
+                    // window.location.href = "contacts.html";
+                }
+            } catch (error) {
+                console.error("Login context processing error:", error);
+                alert("Could not complete authentication processing request.");
+            }
+        });
+
+        // --- HANDLER: REGISTRATION ---
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            if (passwordInput.value !== confirmInput.value) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            const payload = {
+                email: document.getElementById('reg-email').value,
+                password: passwordInput.value,
+            };
+
+            try {
+                const response = await fetch(`${BASE_API_URL}?action=register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                } else if (data.email) {
+                    alert("Registration successful! You may now sign in.");
+                    toggleAuth(false);
+                }
+            } catch (error) {
+                console.error("Registration processing error:", error);
+                alert("Could not process deployment entry registration.");
+            }
+        });
+
+        // Run security handshake automatically on script boot
+        initSession();
     </script>
 </body>
 </html>
