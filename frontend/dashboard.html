@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager - Dashboard Test</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <style type="text/tailwindcss">
+        @theme {
+            --color-brand-beige: #E8D6C3;
+            --color-brand-brown: #6B4F3A;
+            --color-brand-gold: #C9A15B;
+            --color-brand-gold-dark: #916823;
+        }
+
+        @utility main-card {
+            @apply bg-white p-8 rounded-2xl shadow-2xl border border-brand-beige/50 w-full max-w-4xl mx-4;
+        }
+
+        @utility btn-secondary {
+            @apply bg-transparent text-brand-brown border border-brand-brown/40 hover:bg-brand-brown/5 font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer text-sm;
+        }
+    </style>
+</head>
+<body class="bg-brand-beige text-brand-brown flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="main-card">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-brand-beige pb-6 mb-6 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Contact Dashboard</h1>
+                <p class="text-brand-brown/70 mt-1">Logged in as: <span id="user-display-email" class="font-bold text-brand-gold-dark">Loading...</span></p>
+            </div>
+            <div>
+                <button onclick="handleLogout()" class="btn-secondary">
+                    Sign Out 🚪
+                </button>
+            </div>
+        </div>
+
+        <div class="border-2 border-dashed border-brand-beige/80 rounded-xl p-12 text-center bg-amber-50/10">
+            <p class="text-lg font-medium text-brand-brown/80">🎉 Redirect Successful!</p>
+            <p class="text-sm text-brand-brown/60 mt-2 max-w-md mx-auto">
+                Successful Login
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Check if the user is authenticated on page load
+        async function checkAccess() {
+            const emailSpan = document.getElementById('user-display-email');
+            try {
+                const response = await fetch('http://192.241.134.241/api/auth.php?action=me');
+                const data = await response.json();
+
+                if (data.error || (!data.success && !data.email)) {
+                    // If server says no session, boot them back to landing page
+                    alert("Access Denied: Please sign in first.");
+                    window.location.href = "index.html";
+                } else {
+                    // Display user email from backend session
+                    emailSpan.innerText = data.email || "Active User";
+                }
+            } catch (error) {
+                console.error("Session verification failed:", error);
+                // Fallback for offline testing
+                emailSpan.innerText = "Test Session (Local Mode)";
+            }
+        }
+
+        // Clean logout implementation
+        function handleLogout() {
+            // Optional: If backend has logout action, call it here
+            // fetch('http://192.241.134.241/api/auth.php?action=logout');
+            
+            alert("Logging out...");
+            window.location.href = "index.html";
+        }
+
+        // Run access check instantly
+        checkAccess();
+    </script>
+</body>
+</html>
