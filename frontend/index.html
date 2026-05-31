@@ -26,7 +26,8 @@
         }
 
         @utility input-field {
-            @apply w-full bg-white border border-brand-beige rounded-xl pl-4 pr-12 py-3 text-brand-brown placeholder-brand-brown/60 transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
+            /* Added focus:placeholder-transparent to instantly clear text on click/focus */
+            @apply w-full bg-white border border-brand-beige rounded-xl pl-4 pr-12 py-3 text-brand-brown placeholder-brand-brown/60 focus:placeholder-transparent transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
         }
 
         @utility btn-primary {
@@ -75,20 +76,25 @@
             </p>
         </form>
 
+        <!-- --- FORM: REGISTER --- -->
         <form id="register-form" class="space-y-5 hidden" onsubmit="event.preventDefault();">
             <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
-            
+            <p class="text-xs text-brand-brown/100 mt-1.5 font-medium"> Enter your email address.</p>
             <div>
                 <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
                 <input type="email" id="reg-email" placeholder="name@example.com" required class="input-field">
+                <!-- Email guide text nested safely below field -->
             </div>
             
             <div>
                 <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                  <p class="text-xs text-brand-brown/100 mt-1.5 font-medium">🔒 Choose a password (minimum of 8 characters).</p>
                 <div class="relative">
-                    <input type="password" id="reg-password" placeholder="••••••••" required class="input-field">
+                    <input type="password" id="reg-password" placeholder="•••••••• (min 8 chars)" minlength="8" required class="input-field">
                     <button type="button" onclick="togglePasswordVisibility('reg-password', this)" class="toggle-password-btn">Show</button>
                 </div>
+                <!-- Password guide text nested safely below field -->
+              
             </div>
             
             <div>
@@ -97,7 +103,7 @@
                     <input type="password" id="reg-password-confirm" placeholder="••••••••" required class="input-field">
                     <button type="button" onclick="togglePasswordVisibility('reg-password-confirm', this)" class="toggle-password-btn">Show</button>
                 </div>
-                <p id="password-error" class="text-red-600 text-xs mt-1 font-medium hidden">⚠️ Passwords do not match.</p>
+                <p id="password-error" class="text-red-600 text-xs mt-1.5 font-medium hidden">⚠️ Passwords do not match.</p>
             </div>
 
             <div class="pt-2">
@@ -111,7 +117,7 @@
     </div>
 
     <script>
-         const BASE_API_URL = 'http://192.241.134.241/api/auth.php';
+        const BASE_API_URL = 'http://192.241.134.241/api/auth.php';
 
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
@@ -123,10 +129,8 @@
 
         async function initSession() {
             try {
-                // Request state details (exempt from token checks)
                 const response = await fetch(`${BASE_API_URL}?action=me`);
                 const data = await response.json();
-                
             } catch (error) {
                 console.error("Initialization failure:", error);
             }
@@ -190,14 +194,14 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    alert(data.error);
-                } else if (data.email) {
-                    alert(`Welcome back, ${data.email}!`);
-                    // window.location.href = "contacts.html";
+                    alert(`Login Failed: ${data.error}`);
+                } else if (data.success || data.email) {
+                    alert(`Welcome back, ${data.email || 'User'}! Redirecting to your dashboard...`);
+                    window.location.href = "dashboard.html";
                 }
             } catch (error) {
                 console.error("Login context processing error:", error);
-                alert("Could not complete authentication processing request.");
+                alert("Could not complete authentication request. Please ensure the server is online.");
             }
         });
 
@@ -206,7 +210,7 @@
             event.preventDefault();
 
             if (passwordInput.value !== confirmInput.value) {
-                alert("Passwords do not match!");
+                alert("Registration Failed: Passwords do not match!");
                 return;
             }
 
@@ -225,18 +229,19 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    alert(data.error);
-                } else if (data.email) {
-                    alert("Registration successful! You may now sign in.");
+                    alert(`Account Creation Failed: ${data.error}`);
+                } else if (data.success || data.email) {
+                    alert("Account created successfully! Click OK to return to the sign-in screen.");
                     toggleAuth(false);
+                    loginEmailInput.value = payload.email;
+                    loginPasswordInput.focus();
                 }
             } catch (error) {
                 console.error("Registration processing error:", error);
-                alert("Could not process deployment entry registration.");
+                alert("Could not process registration. Server down or database dropped the connection.");
             }
         });
 
-        // Run security handshake automatically on script boot
         initSession();
     </script>
 </body>
