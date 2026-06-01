@@ -1,86 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Manager - Dashboard Test</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
-    <style type="text/tailwindcss">
-        @theme {
-            --color-brand-beige: #E8D6C3;
-            --color-brand-brown: #6B4F3A;
-            --color-brand-gold: #C9A15B;
-            --color-brand-gold-dark: #916823;
-        }
-
-        @utility main-card {
-            @apply bg-white p-8 rounded-2xl shadow-2xl border border-brand-beige/50 w-full max-w-4xl mx-4;
-        }
-
-        @utility btn-secondary {
-            @apply bg-transparent text-brand-brown border border-brand-brown/40 hover:bg-brand-brown/5 font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer text-sm;
-        }
-    </style>
-</head>
-<body class="bg-brand-beige text-brand-brown flex flex-col items-center justify-center min-h-screen p-4">
-
-    <div class="main-card">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-brand-beige pb-6 mb-6 gap-4">
-            <div>
-                <h1 class="text-3xl font-extrabold tracking-tight">Contact Dashboard</h1>
-                <p class="text-brand-brown/70 mt-1">Logged in as: <span id="user-display-email" class="font-bold text-brand-gold-dark">Loading...</span></p>
-            </div>
-            <div>
-                <button onclick="handleLogout()" class="btn-secondary">
-                    Sign Out 🚪
-                </button>
-            </div>
-        </div>
-
-        <div class="border-2 border-dashed border-brand-beige/80 rounded-xl p-12 text-center bg-amber-50/10">
-            <p class="text-lg font-medium text-brand-brown/80">🎉 Redirect Successful!</p>
-            <p class="text-sm text-brand-brown/60 mt-2 max-w-md mx-auto">
-                Successful Login
-            </p>
-        </div>
-    </div>
-
-    <script>
-        // Check if the user is authenticated on page load
-        async function checkAccess() {
-            const emailSpan = document.getElementById('user-display-email');
-            try {
-                const response = await fetch('http://192.241.134.241/api/auth.php?action=me');
-                const data = await response.json();
-
-                if (data.error || (!data.success && !data.email)) {
-                    // If server says no session, boot them back to landing page
-                    alert("Access Denied: Please sign in first.");
-                    window.location.href = "index.html";
-                } else {
-                    // Display user email from backend session
-                    emailSpan.innerText = data.email || "Active User";
-                }
-            } catch (error) {
-                console.error("Session verification failed:", error);
-                // Fallback for offline testing
-                emailSpan.innerText = "Test Session (Local Mode)";
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Contact Manager - Dashboard</title>
+        
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        
+        <style type="text/tailwindcss">
+            @theme {
+                --color-brand-beige: #E8D6C3;
+                --color-brand-brown: #6B4F3A;
+                --color-brand-gold: #C9A15B;
+                --color-brand-gold-dark: #916823;
+                --color-brand-link-blue: #1A56DB;
+                --color-brand-link-blue-hover: #11459E;
             }
-        }
+        </style>
+    </head>
+    <body class="bg-brand-beige min-h-screen">
+        
+        <header class="bg-brand-brown text-brand-beige shadow-lg">
+            <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <h1 class="text-2xl font-bold">
+                        Contact Manager
+                    </h1>            
+                    <button onclick="handleLogout()" class="bg-brand-gold text-brand-brown px-4 py-2 rounded-xl font-semibold">
+                        Logout
+                    </button>
+            </div>
+        </header>
+        
+        <main class="max-w-6xl mx-auto p-6">
+           
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                
+                <h2 class="text-2xl font-bold text-brand-brown">Welcome</h2>    
+                <!-- add the name of user here -->
+                
+                <p class="text-brand-brown mt-2 mb-3">
+                    Type a name to search or add new contact:
+                </p>
 
-        // Clean logout implementation
-        function handleLogout() {
-            // Optional: If backend has logout action, call it here
-            // fetch('http://192.241.134.241/api/auth.php?action=logout');
+                <div class="flex gap-3">
+                    
+                    <input 
+                        type="text"
+                        placeholder="Search contacts..."
+                        class="flex-1 border border-brand-beige rounded-xl px-4 py-3">
+                    
+                    <button class="bg-brand-brown text-brand-beige px-5 py-3 rounded-xl font-semibold">
+                        Search
+                    </button>
+
+                     <button 
+                        onclick="openContact()"
+                        class="bg-brand-gold text-brand-brown px-4 py-3 rounded-xl font-bold">
+                        + Add Contact    
+                    </button>
+                </div>
+                
             
-            alert("Logging out...");
-            window.location.href = "index.html";
-        }
+            </div>
 
-        // Run access check instantly
-        checkAccess();
-    </script>
-</body>
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <table class="w-full">
+                    
+                    <thead class="bg-brand-brown text-brand-beige">
+                        <tr>
+                            <th class="text-left p-4">First Name</th>
+                            <th class="text-left p-4">Last Name</th>
+                            <th class="text-left p-4">Phone</th>
+                            <th class="text-left p-4">Email</th>
+                            <th class="text-left p-4">Actions</th>
+                        
+                        </tr>
+                    </thead>
+
+                    <tbody id="contacts-table-body">
+                        <tr class="border-b border-brand-beige">
+                            <td class="p-4">John</td>
+
+                            <td class="p-4">Smith</td>
+
+                            <td class="p-4">407-555-1234</td>
+
+                            <td class="p-4">john@email.com</td>
+
+                            <td class="p-4">
+                                <button 
+                                    onclick="editContact()" 
+                                    class="bg-brand-gold text-brand-brown px-3 py-1 rounded-lg mr-2">
+                                    
+                                    Edit
+                                </button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-lg">
+                                    Delete
+                                </button>
+                            </td>
+                            
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <div id="contact-card" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center">
+            
+            <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+
+                <h2 id="title-card" class="text-2xl text-center font-bold text-brand-brown mb-3">Card</h2>    
+                <p class="text-brand-brown text-center mt-2 mb-3">
+                    All fields are required.
+                </p>
+
+                <form class="space-y-4">
+                    
+                    <label for="first-name" class="font-bold text-brand-brown">
+                        First Name
+                        <span class="text-red-700">*</span>
+                    </label> 
+
+                    <input
+                        id="first-name"
+                        type="text"
+                        placeholder="FirstName"
+                        required
+                        class="w-full border border-brand-beige rounded-xl px-4 py-3">
+                    
+                    <label for="last-name" class="font-bold text-brand-brown">
+                        Last Name
+                        <span class="text-red-700">*</span>
+                    </label> 
+                    
+                    <input
+                        id="last-name"
+                        type="text"
+                        placeholder="LastName"
+                        required
+                        class="w-full border border-brand-beige rounded-xl px-4 py-3">
+                    
+                    <label for="email" class="font-bold text-brand-brown">
+                        Email
+                        <span class="text-red-700">*</span>
+                    </label> 
+                    
+                    <input
+                        id="email"
+                        type="email"
+                        placeholder="email@example.com"
+                        required
+                        class="w-full border border-brand-beige rounded-xl px-4 py-3">
+                    
+                    <label for="phone" class="font-bold text-brand-brown">
+                        Phone
+                        <span class="text-red-700">*</span>
+                    </label> 
+
+                    <input
+                        id="phone"
+                        type="tel"
+                        placeholder="000-000-0000"
+                        required
+                        class="w-full border border-brand-beige rounded-xl px-4 py-3">
+                    
+                    <div class="flex justify-end gap-3">
+                        
+                        <button
+                            type="button"
+                            onclick="closeContact()"
+                            class="px-4 py-2 rounded-xl border">
+                            
+                            Cancel
+                            
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="bg-brand-brown text-brand-beige px-4 py-2 rounded-xl">
+                            
+                            Save
+                            
+                        </button>
+
+                    </div>
+                    
+                </form>
+
+            </div>
+
+        </div>
+
+        <script>
+            function openContact() {
+                document.getElementById("contact-card").classList.remove("hidden");
+                document.getElementById("title-card").innerText = "Add Contact";
+
+                // clean fields, just in case user clicks on Edit and then Add Contact
+                
+                document.getElementById("first-name").value = "";
+                document.getElementById("last-name").value = "";
+                document.getElementById("email").value = "";
+                document.getElementById("phone").value = "";
+            }
+
+            function closeContact() {
+                document.getElementById("contact-card").classList.add("hidden");
+            }
+
+            function editContact() {
+                document.getElementById("contact-card").classList.remove("hidden");
+                document.getElementById("title-card").innerText = "Edit Contact";
+                
+                // TODO: get correct data using API
+
+                document.getElementById("first-name").value = "John"; //contact.first_name
+                document.getElementById("last-name").value = "Smith";
+                document.getElementById("email").value = "407-555-1234";
+                document.getElementById("phone").value = "john@email.com";
+            }
+
+            function handleLogout() {
+                alert("Logging out...");
+                window.location.href = "index.html";
+            }
+        </script>
+
+    </body>
 </html>
