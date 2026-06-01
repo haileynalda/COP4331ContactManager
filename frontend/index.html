@@ -26,7 +26,7 @@
         }
 
         @utility input-field {
-            @apply w-full bg-white border border-brand-beige rounded-xl pl-4 pr-12 py-3 text-brand-brown placeholder-brand-brown/60 transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
+            @apply w-full bg-white border border-brand-beige rounded-xl pl-4 pr-12 py-3 text-brand-brown placeholder-brand-brown/60 focus:placeholder-transparent transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
         }
 
         @utility btn-primary {
@@ -42,7 +42,7 @@
         }
     </style>
 </head>
-<body class="bg-brand-beige text-brand-brown flex items-center justify-center h-screen transition-all">
+<body class="bg-brand-beige text-brand-brown flex items-center justify-center min-h-screen py-10 transition-all">
 
     <div class="auth-card">
         
@@ -55,9 +55,9 @@
             <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
             
             <div>
-    <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
-    <input type="email" id="login-email" placeholder="name@example.com" required class="input-field">
-</div>
+                <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="email" id="login-email" placeholder="name@example.com" required class="input-field">
+            </div>
             
             <div>
                 <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
@@ -75,9 +75,9 @@
             </p>
         </form>
 
-        <form id="register-form" class="space-y-5 hidden" onsubmit="event.preventDefault();">
-            <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
-
+        <form id="register-form" class="space-y-4 hidden" onsubmit="event.preventDefault();">
+            <p class="text-sm text-brand-brown/100 italic mb-1">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
+            
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="input-label">First Name <span class="text-red-700" aria-hidden="true">*</span></label>
@@ -88,18 +88,22 @@
                     <input type="text" id="reg-lastname" placeholder="Doe" required class="input-field">
                 </div>
             </div>
-            
+
             <div>
-    <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
-    <input type="email" id="reg-email" placeholder="name@example.com" required class="input-field">
-</div>
+                <label class="input-label">Email Address <span class="text-red-700" aria-hidden="true">*</span></label>
+                <input type="email" id="reg-email" placeholder="name@example.com" required class="input-field">
+              
+            </div>
+
             
             <div>
                 <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                  <p class="text-xs text-brand-brown/90 mt-1 font-medium"> Minimum of 8 characters.</p>
                 <div class="relative">
-                    <input type="password" id="reg-password" placeholder="••••••••" required class="input-field">
+                    <input type="password" id="reg-password" placeholder="••••••••" minlength="8" required class="input-field">
                     <button type="button" onclick="togglePasswordVisibility('reg-password', this)" class="toggle-password-btn">Show</button>
                 </div>
+              
             </div>
             
             <div>
@@ -114,7 +118,7 @@
             <div class="pt-2">
                 <button type="submit" class="btn-primary">Register Account</button>
             </div>
-            <p class="text-center text-sm text-brand-brown/80 mt-5">
+            <p class="text-center text-sm text-brand-brown/80 mt-4">
                 Already have an account? <a href="#" onclick="toggleAuth(false)" class="auth-link">Sign in</a>
             </p>
         </form>
@@ -122,11 +126,27 @@
     </div>
 
     <script>
-        function toggleAuth(showRegister) {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const subtitle = document.getElementById('auth-subtitle');
+        const BASE_API_URL = 'http://192.241.134.241/api/auth.php';
 
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const passwordInput = document.getElementById('reg-password');
+        const confirmInput = document.getElementById('reg-password-confirm');
+        const errorMsg = document.getElementById('password-error');
+
+        async function initSession() {
+            try {
+                const response = await fetch(`${BASE_API_URL}?action=me`);
+                const data = await response.json();
+            } catch (error) {
+                console.error("Initialization failure:", error);
+            }
+        }
+
+        function toggleAuth(showRegister) {
+            const subtitle = document.getElementById('auth-subtitle');
             if (showRegister) {
                 loginForm.classList.add('hidden');
                 registerForm.classList.remove('hidden');
@@ -138,16 +158,11 @@
             }
         }
 
-        const passwordInput = document.getElementById('reg-password');
-        const confirmInput = document.getElementById('reg-password-confirm');
-        const errorMsg = document.getElementById('password-error');
-
         function checkPasswords() {
             if (confirmInput.value === '') {
                 errorMsg.classList.add('hidden');
                 return;
             }
-
             if (passwordInput.value === confirmInput.value) {
                 errorMsg.classList.add('hidden');
             } else {
@@ -160,7 +175,6 @@
 
         function togglePasswordVisibility(inputId, buttonElement) {
             const input = document.getElementById(inputId);
-            
             if (input.type === 'password') {
                 input.type = 'text';
                 buttonElement.innerText = 'Hide';
@@ -169,6 +183,76 @@
                 buttonElement.innerText = 'Show';
             }
         }
+
+        // --- HANDLER: LOGIN ---
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const payload = {
+                email: loginEmailInput.value,
+                password: loginPasswordInput.value,
+            };
+
+            try {
+                const response = await fetch(`${BASE_API_URL}?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(`Login Failed: ${data.error}`);
+                } else if (data.success || data.email) {
+                    window.location.href = "dashboard.html";
+                }
+            } catch (error) {
+                console.error("Login context processing error:", error);
+                alert("Could not complete authentication request. Please ensure the server is online.");
+            }
+        });
+
+        // --- HANDLER: REGISTRATION ---
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            if (passwordInput.value !== confirmInput.value) {
+                alert("Registration Failed: Passwords do not match!");
+                return;
+            }
+
+            const payload = {
+                firstName: document.getElementById('reg-firstname').value,
+                lastName: document.getElementById('reg-lastname').value,
+                email: document.getElementById('reg-email').value,
+                password: passwordInput.value,
+            };
+
+            try {
+                const response = await fetch(`${BASE_API_URL}?action=register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(`Account Creation Failed: ${data.error}`);
+                } else if (data.success || data.email) {
+                    alert("Account created successfully! Click OK to return to the sign-in screen.");
+                    toggleAuth(false);
+                    loginEmailInput.value = payload.email;
+                    loginPasswordInput.focus();
+                }
+            } catch (error) {
+                console.error("Registration processing error:", error);
+                alert("Could not process registration. Server down or database dropped the connection.");
+            }
+        });
+
+        initSession();
     </script>
 </body>
 </html>
