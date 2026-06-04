@@ -1,0 +1,434 @@
+openapi: 3.0.3
+info:
+  title: Contact Manager API
+  version: 1.0.0
+  description: |
+    OpenAPI documentation of the contact manager
+servers:
+  - url: https://192.241.134.241/LAMPAPI
+    description: Contains the database and a web application
+
+tags:
+  - name: Auth
+    description: User login and account creation
+  - name: Contacts
+    description: Contact creation, search, update, and deletion
+
+paths:
+  /Login.php:
+    post:
+      tags:
+        - Auth
+      summary: Log in a user
+      description: Authenticates a user by login and password and returns the user's ID, first name, and last name.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              login: jdoe
+              password: password123
+      responses:
+        '200':
+          description: Login result. If authentication fails, error is populated and id is 0.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: Successful login
+                  value:
+                    id: 1
+                    firstName: John
+                    lastName: Doe
+                    error: ""
+                noRecords:
+                  summary: Invalid login
+                  value:
+                    id: 0
+                    firstName: ""
+                    lastName: ""
+                    error: No Records Found
+
+  /SignUp.php:
+    post:
+      tags:
+        - Auth
+      summary: Create a new user account
+      description: Creates a new user if the requested login is not already taken.
+      operationId: signUpUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+            example:
+              firstName: John
+              lastName: Doe
+              login: jdoe
+              password: password123
+      responses:
+        '200':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpSuccessResponse'
+              example:
+                results:
+                  - id: "1"
+                error: ""
+        '409':
+          description: Username is already taken.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
+              example:
+                error: Username taken
+
+  /AddContacts.php:
+    post:
+      tags:
+        - Contacts
+      summary: Add a contact
+      description: Adds a new contact for the specified user.
+      operationId: addContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddContactRequest'
+            example:
+              firstName: Jane
+              lastName: Smith
+              phone: "407-555-1234"
+              email: jane@example.com
+              userId: 1
+      responses:
+        '200':
+          description: Contact insert result. Empty error means success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
+              example:
+                error: ""
+
+  /SearchContacts.php:
+    post:
+      tags:
+        - Contacts
+      summary: Search contacts
+      description: Searches contacts by first or last name for a given user.
+      operationId: searchContacts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchContactsRequest'
+            example:
+              search: Ja
+              userId: 1
+      responses:
+        '200':
+          description: Search results, or an error object when no records are found.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SearchContactsSuccessResponse'
+                  - $ref: '#/components/schemas/LoginStyleErrorResponse'
+              examples:
+                success:
+                  summary: Contacts found
+                  value:
+                    results:
+                      - FirstName: Jane
+                        LastName: Smith
+                        Phone: "407-555-1234"
+                        Email: jane@example.com
+                        UserID: "1"
+                        ID: "10"
+                    error: ""
+                noRecords:
+                  summary: No matching contacts
+                  value:
+                    id: 0
+                    firstName: ""
+                    lastName: ""
+                    error: No Records Found
+
+  /UpdateContacts.php:
+    post:
+      tags:
+        - Contacts
+      summary: Update a contact
+      description: Updates the first name, last name, phone, and email for a contact selected by contact ID.
+      operationId: updateContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+            example:
+              id: 10
+              newFirstName: Janet
+              newLastName: Smith
+              phone: "407-555-5678"
+              email: janet@example.com
+      responses:
+        '200':
+          description: Update result. Empty error means success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginStyleErrorResponse'
+              example:
+                id: 0
+                firstName: ""
+                lastName: ""
+                error: ""
+
+  /DeleteContacts.php:
+    post:
+      tags:
+        - Contacts
+      summary: Delete a contact
+      description: Deletes a contact matching first name, last name, and user ID.
+      operationId: deleteContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteContactRequest'
+            example:
+              firstName: Jane
+              lastName: Smith
+              userId: 1
+      responses:
+        '200':
+          description: Delete result. Empty error means success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
+              example:
+                error: ""
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          description: User login name.
+        password:
+          type: string
+          format: password
+          description: User password.
+      additionalProperties: true
+
+    LoginResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - error
+      properties:
+        id:
+          type: integer
+          example: 1
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        error:
+          type: string
+          example: ""
+
+    SignUpRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - login
+        - password
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        login:
+          type: string
+        password:
+          type: string
+          format: password
+
+    SignUpSuccessResponse:
+      type: object
+      required:
+        - results
+        - error
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Created user ID as returned by the PHP code.
+                example: "1"
+        error:
+          type: string
+          example: ""
+
+    AddContactRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - phone
+        - email
+        - userId
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        userId:
+          type: integer
+
+    SearchContactsRequest:
+      type: object
+      required:
+        - search
+        - userId
+      properties:
+        search:
+          type: string
+          description: Name fragment matched against FirstName or LastName.
+        userId:
+          type: integer
+
+    SearchContactsSuccessResponse:
+      type: object
+      required:
+        - results
+        - error
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        error:
+          type: string
+          example: ""
+
+    UpdateContactRequest:
+      type: object
+      required:
+        - id
+        - newFirstName
+        - newLastName
+        - phone
+        - email
+      properties:
+        id:
+          type: integer
+          description: Contact ID to update.
+        newFirstName:
+          type: string
+        newLastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+
+    DeleteContactRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - userId
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        userId:
+          type: integer
+
+    Contact:
+      type: object
+      properties:
+        FirstName:
+          type: string
+        LastName:
+          type: string
+        Phone:
+          type: string
+        Email:
+          type: string
+          format: email
+        UserID:
+          type: string
+          description: User ID as returned by SearchContacts.php.
+        ID:
+          type: string
+          description: Contact ID as returned by SearchContacts.php.
+
+    SimpleErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Empty string indicates success.
+          example: ""
+
+    LoginStyleErrorResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - error
+      properties:
+        id:
+          type: integer
+          example: 0
+        firstName:
+          type: string
+          example: ""
+        lastName:
+          type: string
+          example: ""
+        error:
+          type: string
+          description: Empty string indicates success for update; otherwise contains the error message.
