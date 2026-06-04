@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager - Authentication</title>
+    <meta name="description" content="Secure, fast, and responsive student contact management portal for COP4331.">
+    
+    <script type="text/javascript" src="js/md5.js" defer></script>
+    <script type="text/javascript" src="js/code.js" defer></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <style type="text/tailwindcss">
+        @theme {
+            --color-brand-beige: #E8D6C3;
+            --color-brand-brown: #6B4F3A;
+            --color-brand-gold: #C9A15B;
+            --color-brand-gold-dark: #916823;
+            --color-brand-link-blue: #1A56DB;
+            --color-brand-link-blue-hover: #11459E;
+        }
+
+        @utility auth-card {
+            @apply bg-white p-10 rounded-2xl shadow-2xl border border-brand-beige/50 w-full max-w-lg mx-4;
+        }
+
+        @utility input-label {
+            @apply block text-sm font-bold uppercase tracking-wider text-brand-brown/90 mb-1.5;
+        }
+
+        @utility input-field {
+            @apply w-full bg-white border border-brand-beige rounded-xl pl-4 pr-12 py-3 text-brand-brown placeholder-brand-brown/85 focus:placeholder-transparent transition-all text-base outline-none hover:bg-brand-beige/10 focus:bg-amber-50/30 focus:ring-2 focus:ring-brand-gold-dark focus:border-transparent;
+        }
+
+        @utility btn-primary {
+            @apply w-full bg-brand-brown text-brand-beige hover:bg-brand-brown/90 font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-brand-brown/20 active:scale-[0.99] text-base cursor-pointer focus:outline-2 focus:outline-offset-2 focus:outline-brand-brown;
+        }
+
+        @utility auth-link {
+            @apply text-brand-link-blue underline font-bold transition-all hover:text-brand-link-blue-hover hover:bg-blue-50 focus:bg-blue-100 focus:outline-none rounded px-1.5 py-0.5;
+        }
+
+        @utility toggle-password-btn {
+            @apply absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-tight text-brand-brown hover:text-brand-gold-dark cursor-pointer select-none px-2 py-1;
+        }
+    </style>
+</head>
+
+<body class="bg-brand-beige text-brand-brown flex items-center justify-center min-h-screen py-10 transition-all">
+
+    <main class="w-full flex justify-center">
+        <div class="auth-card">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-extrabold tracking-tight text-brand-brown">Contact Manager</h1>
+                <p id="auth-subtitle" class="text-brand-brown mt-2.5 text-base font-medium">Welcome back.</p>
+            </div>
+
+            <form id="login-form" class="space-y-5" onsubmit="doLogin(event)">
+                
+                <p class="text-sm text-brand-brown/100 italic mb-3">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
+                
+                <div>
+                    <label class="input-label">Username <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <input type="text" id="login-username" placeholder="username" required class="input-field">
+                </div>
+                
+                <div>
+                    <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="••••••••" required class="input-field">
+                        <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="toggle-password-btn">Show</button>
+                    </div>
+                </div>
+
+            <div class="pt-2">
+                <button type="submit" class="btn-primary">Sign In</button>
+            </div>
+
+                <p id="login-result" class="text-red-600 text-sm font-medium text-center"></p>
+
+                <p class="text-center text-sm text-brand-brown/80 mt-5">
+                    Don't have an account? <a href="#" onclick="toggleAuth(true)" class="auth-link">Create one</a>
+                </p>
+
+            </form>
+
+            <form id="register-form" class="space-y-4 hidden" onsubmit="doSignup(event)">
+                <p class="text-sm text-brand-brown/100 italic mb-1">Required fields are marked with an asterisk <span class="text-red-700">*</span></p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    
+                    <div>
+                        <label class="input-label">First Name <span class="text-red-700" aria-hidden="true">*</span></label>
+                        <input type="text" id="reg-firstname" placeholder="John" required class="input-field">
+                    </div>
+                    <div>
+                        <label class="input-label">Last Name <span class="text-red-700" aria-hidden="true">*</span></label>
+                        <input type="text" id="reg-lastname" placeholder="Doe" required class="input-field">
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="input-label">Username <span class="text-red-700" aria-hidden="true">*</span></label>
+                     <p class="text-xs text-brand-brown/90 mt-1 font-medium"> Username must be unique.</p>
+                    <input type="text" id="reg-username" placeholder="username" required class="input-field">
+                </div>
+
+                <div>
+                    <label class="input-label">Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <p class="text-xs text-brand-brown/90 mt-1 font-medium"> Minimum of 8 characters.</p>
+                    <div class="relative">
+                        <input type="password" id="reg-password" placeholder="••••••••" minlength="8" required class="input-field">
+                        <button type="button" onclick="togglePasswordVisibility('reg-password', this)" class="toggle-password-btn">Show</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="input-label">Confirm Password <span class="text-red-700" aria-hidden="true">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="reg-password-confirm" placeholder="••••••••" required class="input-field">
+                        <button type="button" onclick="togglePasswordVisibility('reg-password-confirm', this)" class="toggle-password-btn">Show</button>
+                    </div>
+                    <p id="password-error" class="text-red-600 text-xs mt-1 font-medium hidden">⚠️ Passwords do not match.</p>
+                </div>
+
+                <p id="reg-result" class="text-red-600 text-sm font-medium text-center"></p>
+
+                <div class="pt-2">
+                    <button type="submit" class="btn-primary">Register Account</button>
+                </div>
+                <p class="text-center text-sm text-brand-brown/80 mt-4">
+                    Already have an account? <a href="#" onclick="toggleAuth(false)" class="auth-link">Sign in</a>
+                </p>
+            </form>
+
+        </div>
+    </main>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginUsernameInput = document.getElementById('login-username');
+        const loginPasswordInput = document.getElementById('login-password');
+        const passwordInput = document.getElementById('reg-password');
+        const confirmInput = document.getElementById('reg-password-confirm');
+        const errorMsg = document.getElementById('password-error');
+
+        function toggleAuth(showRegister) {
+            const subtitle = document.getElementById('auth-subtitle');
+            if (showRegister) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                subtitle.innerText = 'Create an account to get started.';
+            } else {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                subtitle.innerText = 'Welcome back.';
+            }
+        }
+
+        function checkPasswords() {
+            if (confirmInput.value === '') {
+                errorMsg.classList.add('hidden');
+                return;
+            }
+            if (passwordInput.value === confirmInput.value) {
+                errorMsg.classList.add('hidden');
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        passwordInput.addEventListener('input', checkPasswords);
+        confirmInput.addEventListener('input', checkPasswords);
+
+        function togglePasswordVisibility(inputId, buttonElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                buttonElement.innerText = 'Hide';
+            } else {
+                input.type = 'password';
+                buttonElement.innerText = 'Show';
+            }
+        }
+
+       
+    </script>
+</body>
+</html>
