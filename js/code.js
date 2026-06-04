@@ -1,0 +1,290 @@
+const urlBase = 'http://192.241.134.241/LAMPAPI';
+const extension = 'php';
+
+let userId = 0;
+let firstName = "";
+let lastName = "";
+const ids = [];
+
+// Login & Logout
+
+// Patched Login - Handles the event to prevent page reloads and uses MD5 hashing
+function doLogin(event)
+{
+    if (event) event.preventDefault(); // this line prevents the refresh bug from the old code
+    
+    userId = 0;
+    firstName = "";
+    lastName = "";
+    
+    let login = document.getElementById("login-username").value;
+    let password = document.getElementById("login-password").value;
+    
+    // validate these fields
+    if (login.trim() == "" || password.trim() == "")
+    {
+        document.getElementById("login-result").innerHTML = "Invalid username or password."
+        return;
+    }
+    
+    document.getElementById("login-result").innerHTML = "";
+
+    // hash from class example
+    var hash = md5( password );
+    let tmp = {login:login,password:hash};
+    let jsonPayload = JSON.stringify( tmp );
+
+    let url = urlBase + '/Login.' + extension;
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/json; charset=UTF-8");
+    try
+    {
+        xhr.onreadystatechange = function() 
+        {
+            if (this.readyState == 4 && this.status == 200) 
+            {
+                let jsonObject = JSON.parse( xhr.responseText );
+                                
+                userId = jsonObject.id;
+        
+                if( userId < 1 )
+                {       
+                    document.getElementById("login-result").innerHTML = "User/Password combination incorrect";
+                    return;
+                }
+        
+                firstName = jsonObject.firstName;
+                lastName = jsonObject.lastName;
+
+                saveCookie();
+    
+                window.location.href = "dashboard.html";
+            }
+        };
+        xhr.send(jsonPayload);
+    }
+    catch(err)
+    {
+        document.getElementById("login-result").innerHTML = err.message;
+    }
+}
+
+function doLogout()
+{
+	userId = 0;
+	firstName = "";
+	lastName = "";
+
+	document.cookie = "firstName= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
+	window.location.href = "index.html";
+}
+
+// Patched Signup - Fixes the page reload issue, retains 409 error catching, and handles UI switches properly
+function doSignup(event)
+{
+    if (event) event.preventDefault(); // prevent the same error in doLogin()
+
+    firstName = document.getElementById("reg-firstname").value;
+    lastName = document.getElementById("reg-lastname").value;
+
+    let username = document.getElementById("reg-username").value;
+    let password = document.getElementById("reg-password").value;
+    let confirmPassword = document.getElementById("reg-password-confirm").value;
+
+    if (firstName.trim() == "" || lastName.trim() == "" || username.trim() == "" || password.trim() == "")
+    {
+        document.getElementById("reg-result").innerHTML = "Invalid information."
+        return;
+    }
+    else if (password.trim() != confirmPassword.trim())
+    {
+        document.getElementById("reg-result").innerHTML = "Passwords do not match."
+        return;
+    }
+    
+    document.getElementById("reg-result").innerHTML = ""
+
+    var hash = md5(password);
+    let tmp = {
+        firstName: firstName,
+        lastName: lastName,
+        login: username,
+        password: hash
+    };
+
+    let jsonPayload = JSON.stringify( tmp );
+
+    let url = urlBase + '/SignUp.' + extension;
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/json; charset=UTF-8");
+    try
+    {
+        xhr.onreadystatechange = function() 
+        {
+            if (this.readyState != 4) 
+            {
+                return;
+            }
+
+            // Catch duplicate accounts safely without switching screens
+            if (this.status == 409)
+            {
+                document.getElementById("reg-result").innerHTML = "Username already taken.";
+                return;
+            }
+
+            if (this.status == 200)
+            {
+                let jsonObject = JSON.parse( xhr.responseText );
+                
+                // If backend returns a successful response but embeds an error message inside it
+                if (jsonObject.error && jsonObject.error.trim() !== "") {
+                    document.getElementById("reg-result").innerHTML = "Account Creation Failed: " + jsonObject.error;
+                    return;
+                }
+
+                alert("Account created successfully! Click OK to sign in.");
+                
+                if (typeof toggleAuth === "function") {
+                    toggleAuth(false);
+                    document.getElementById('login-username').value = username;
+                    document.getElementById('login-password').focus();
+                } else {
+                    window.location.href = "index.html";
+                }
+            }
+        };
+        xhr.send(jsonPayload);
+    }
+    catch(err)
+    {
+        document.getElementById("reg-result").innerHTML = err.message;
+    }
+}
+
+// COOKIES FUNCTIONS: save and read
+
+function saveCookie()
+{
+	let minutes = 20;
+	let date = new Date();
+	date.setTime(date.getTime()+(minutes*60*1000));	
+	document.cookie = "firstName=" + firstName + ",lastName=" + lastName + ",userId=" + userId + ";expires=" + date.toGMTString();
+}
+
+function readCookie()
+{
+	userId = -1;
+	let data = document.cookie;
+	let splits = data.split(",");
+
+	for(var i = 0; i < splits.length; i++) 
+	{
+		let thisOne = splits[i].trim();
+		let tokens = thisOne.split("=");
+		if( tokens[0] == "firstName" )
+		{
+			firstName = tokens[1];
+		}
+		else if( tokens[0] == "lastName" )
+		{
+			lastName = tokens[1];
+		}
+		else if( tokens[0] == "userId" )
+		{
+			userId = parseInt( tokens[1].trim() );
+		}
+	}
+	
+	if( userId < 0 )
+	{
+		window.location.href = "index.html";
+	}
+	else
+	{
+		document.getElementById("welcome-message").innerHTML = "Welcome" + firstName + " !";
+	}
+}
+
+// CRUD OPERATIONS HERE
+
+// function addColor()
+// {
+// 	let newColor = document.getElementById("colorText").value;
+// 	document.getElementById("colorAddResult").innerHTML = "";
+
+// 	let tmp = {color:newColor,userId,userId};
+// 	let jsonPayload = JSON.stringify( tmp );
+
+// 	let url = urlBase + '/AddColor.' + extension;
+	
+// 	let xhr = new XMLHttpRequest();
+// 	xhr.open("POST", url, true);
+// 	xhr.setRequestHeader("Content-type", "application/json; charset=UTF-8");
+// 	try
+// 	{
+// 		xhr.onreadystatechange = function() 
+// 		{
+// 			if (this.readyState == 4 && this.status == 200) 
+// 			{
+// 				document.getElementById("colorAddResult").innerHTML = "Color has been added";
+// 			}
+// 		};
+// 		xhr.send(jsonPayload);
+// 	}
+// 	catch(err)
+// 	{
+// 		document.getElementById("colorAddResult").innerHTML = err.message;
+// 	}
+	
+// }
+
+// function searchColor()
+// {
+// 	let srch = document.getElementById("searchText").value;
+// 	document.getElementById("colorSearchResult").innerHTML = "";
+	
+// 	let colorList = "";
+
+// 	let tmp = {search:srch,userId:userId};
+// 	let jsonPayload = JSON.stringify( tmp );
+
+// 	let url = urlBase + '/SearchColors.' + extension;
+	
+// 	let xhr = new XMLHttpRequest();
+// 	xhr.open("POST", url, true);
+// 	xhr.setRequestHeader("Content-type", "application/json; charset=UTF-8");
+// 	try
+// 	{
+// 		xhr.onreadystatechange = function() 
+// 		{
+// 			if (this.readyState == 4 && this.status == 200) 
+// 			{
+// 				document.getElementById("colorSearchResult").innerHTML = "Color(s) has been retrieved";
+// 				let jsonObject = JSON.parse( xhr.responseText );
+				
+// 				for( let i=0; i<jsonObject.results.length; i++ )
+// 				{
+// 					colorList += jsonObject.results[i];
+// 					if( i < jsonObject.results.length - 1 )
+// 					{
+// 						colorList += "<br />\r\n";
+// 					}
+// 				}
+				
+// 				document.getElementsByTagName("p")[0].innerHTML = colorList;
+// 			}
+// 		};
+// 		xhr.send(jsonPayload);
+// 	}
+// 	catch(err)
+// 	{
+// 		document.getElementById("colorSearchResult").innerHTML = err.message;
+// 	}
+	
+// }
+
